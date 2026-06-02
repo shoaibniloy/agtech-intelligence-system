@@ -11,13 +11,17 @@ permissions:
 jobs:
   intelligence_sweep:
     runs-on: ubuntu-latest
+    
+    # This explicitly forces the entire job environment onto Node 24
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
       - name: 1. Checkout Repository Data
         uses: actions/checkout@v4.2.2
 
       - name: 2. Initialize Python Environment
-        uses: actions/setup-python@v5.3.0
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.10'
 
