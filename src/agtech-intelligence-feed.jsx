@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 
-// ─── SEED DATA / LOCAL STATIC FALLBACK ────────────────────────────────────────
+// ─── SEED DATA (FALLBACK IF FETCH FAILS) ──────────────────────────────────────
 const now = Date.now();
 const H = 3600000, D = 86400000;
 const SEED = [
@@ -8,24 +8,10 @@ const SEED = [
   { id:"s2",  headline:"Carbon Robotics Gen-4 LaserWeeder achieves 200,000 weed kills/hr with RT-DETR on Jetson Orin NX at 1.2ms latency", summary:"256-nozzle AI vision array validated at 98.4% precision across 120 commercial farms in CA/OR/WA — zero herbicide on enrolled acres.", url:"#", category:"Vision AI", entities:["Carbon Robotics","RT-DETR","Jetson Orin"], confidence:"high", timestamp:new Date(now-2.3*H).toISOString() },
   { id:"s3",  headline:"Indigo Ag SAR-fusion soil carbon MRV reaches ±0.08% SOC precision at 10m resolution across 2.1M monitored acres", summary:"Multi-spectral pipeline secures $12M USDA NIFA validation grant; enables direct integration with voluntary carbon markets at $50/tonne verified credit.", url:"#", category:"Soil Informatics", entities:["Indigo Ag","USDA NIFA","SAR","SOC"], confidence:"high", timestamp:new Date(now-4.1*H).toISOString() },
   { id:"s4",  headline:"Halter virtual fencing logs 2M+ cattle-hours at <0.3% breach rate across 1,200 NZ/AU farms — Series C at $100M closes", summary:"GPS collar edge-inference system now manages 180,000 head; behavioral model trained on 4B+ GPS waypoints enables automated rotational grazing prescription.", url:"#", category:"Livestock Automation", entities:["Halter","Virtual Fencing","Edge AI"], confidence:"high", timestamp:new Date(now-7.2*H).toISOString() },
-  { id:"s5",  headline:"Bowery Farming Chapter 7 assets acquired at $6.5M — third major vertical farm collapse in 18 months as unit energy costs remain unresolved", summary:"CEA sector energy economics breach 4 kWh/kg threshold for leafy greens in controlled environments; AppHarvest restructuring entity absorbs IP portfolio.", url:"#", category:"CEA", entities:["Bowery Farming","AppHarvest","Vertical Farming"], confidence:"high", timestamp:new Date(now-10.5*H).toISOString() },
-  { id:"s6",  headline:"Monarch Tractor MK-V achieves SAE L4 GPS-denied orchard autonomy via LiDAR-SLAM at 0.03m row positioning — 18,000+ hours logged", summary:"750W electric platform running ROS2 on NVIDIA Orin SoC; 340 units deployed in California vineyards with full ISOBUS implement integration.", url:"#", category:"Field Robotics", entities:["Monarch Tractor","LiDAR-SLAM","ROS2","NVIDIA Orin"], confidence:"high", timestamp:new Date(now-1.2*D).toISOString() },
-  { id:"s7",  headline:"Planet Labs SuperDove NDVI-LLM fusion pipeline enables parcel-level yield forecasting at daily 3m global resolution", summary:"200-band multispectral imagery fused with crop-specific foundation model achieves R²=0.91 yield correlation across 14 major crop types globally.", url:"#", category:"Remote Sensing", entities:["Planet Labs","SuperDove","Foundation Model"], confidence:"medium", timestamp:new Date(now-1.8*D).toISOString() },
-  { id:"s8",  headline:"Apian Systems 24-mic hive acoustic AI detects Varroa mite infestation 11 days earlier than visual inspection at 94.7% sensitivity", summary:"On-device CNN classifies colony health via 400Hz vibration signature analysis; 3,200 hives across EU pollinator network currently enrolled.", url:"#", category:"Pollinator Intel", entities:["Apian Systems","Varroa","Hive Acoustics"], confidence:"medium", timestamp:new Date(now-2.5*D).toISOString() },
-  { id:"s9",  headline:"Sabanto retrofit autonomy kit achieves $18/acre operating cost on John Deere 8R — 40% below US row-crop labor breakeven", summary:"SAE L3 via CAN/ISOBUS integration; 120,000+ field hours logged across corn/soy belt with zero reportable safety incidents in 2025 season.", url:"#", category:"Field Robotics", entities:["Sabanto","John Deere 8R","ISOBUS"], confidence:"high", timestamp:new Date(now-3.4*D).toISOString() },
-  { id:"s10", headline:"USDA AFRI 2026 allocates $84M across 14 AI-agriculture institutes — robotic weeding and soil carbon sequestration dominate", summary:"Largest single-year AFRI allocation mandates open-dataset release for all funded systems; specialty crop autonomy and MRV infrastructure are primary targets.", url:"#", category:"Policy", entities:["USDA AFRI","NSF","Robotic Weeding"], confidence:"high", timestamp:new Date(now-4.9*D).toISOString() },
-  { id:"s11", headline:"Arva Intelligence LLM agronomic engine delivers 11% yield uplift across 800K enrolled acres with 4,000 field-calibrated parameters", summary:"Series B $28M closed; platform ingests soil sensor arrays, satellite time-series, and ensemble weather models to generate variable-rate prescription maps.", url:"#", category:"Digital Twins", entities:["Arva Intelligence","LLM","Prescription Maps"], confidence:"medium", timestamp:new Date(now-6.1*D).toISOString() },
-  { id:"s12", headline:"Ginkgo Bioworks engineered Azospirillum seed coating enters Phase III — 14% nitrogen fixation uplift in 60,000-acre wheat trial", summary:"Corteva partnership delivers polymer-encapsulated microbial strains across Kansas/Nebraska; eliminates 40kg/ha synthetic nitrogen in enrolled fields.", url:"#", category:"Synthetic Bio", entities:["Ginkgo Bioworks","Corteva","Azospirillum"], confidence:"medium", timestamp:new Date(now-8.3*D).toISOString() },
-  { id:"s13", headline:"EcoRobotix ARA autonomous sprayer achieves 95% chemical reduction in row-crop trials via 256-nozzle targeted micro-dosing array", summary:"Jetson AGX Orin inference stack at 98.4% weed detection precision, 5 ha/hr field speed; validated across Swiss and French commercial deployments.", url:"#", category:"Vision AI", entities:["EcoRobotix","ARA","Jetson AGX Orin"], confidence:"high", timestamp:new Date(now-11*D).toISOString() },
-  { id:"s14", headline:"Trimble acquires HMC Digital for $210M — soil microbiome AI scoring across 22 parameters expands platform to 170M+ managed acres", summary:"Integration into Ag Software 360 gives Trimble genomic soil health layer; acquisition accelerates land management data moat versus John Deere Operations Center.", url:"#", category:"Markets", entities:["Trimble","HMC Digital","Soil Microbiome"], confidence:"medium", timestamp:new Date(now-16*D).toISOString() },
-  { id:"s15", headline:"EU AI Act Article 22 finalizes: SAE L3+ autonomous agricultural machinery classified high-risk, CE marking mandatory from Jan 2027", summary:"Regulation requires human oversight logging, explainability reporting, and conformity assessment for all autonomous systems sold across EU member states.", url:"#", category:"Policy", entities:["EU AI Act","SAE L3","CE Marking"], confidence:"high", timestamp:new Date(now-21*D).toISOString() },
-  { id:"s16", headline:"Climate Corp FieldView loses 800K paid subscriptions in 12 months — open-data mandate fractures farm OS pricing model", summary:"$25/acre SaaS pricing collapses under interoperability pressure; Bayer evaluates strategic divestiture of Climate Corp as standalone AgTech thesis weakens.", url:"#", category:"Markets", entities:["Bayer","Climate Corp","FieldView"], confidence:"medium", timestamp:new Date(now-34*D).toISOString() },
-  { id:"s17", headline:"CSIRO multi-robot sheep mustering completes 10,000-acre paddock trial at 98.2% mob movement success — zero human intervention", summary:"Four-UGV coordinated herding stack uses acoustic pressure gradients and directional signals; Australian outback validation across 3 stations over 90 days.", url:"#", category:"Livestock Automation", entities:["CSIRO","UGV","Multi-Robot","Sheep"], confidence:"medium", timestamp:new Date(now-55*D).toISOString() },
-  { id:"s18", headline:"NASA SMAP Level-4 soil moisture at ±0.03m³/m³ precision integrated into 6 commercial precision irrigation platforms globally", summary:"Sentinel-2 optical fusion produces 9km soil moisture fields updated every 3 days; Trimble, Lindsay, and Valley Irrigation confirm API integration in 2026 releases.", url:"#", category:"Remote Sensing", entities:["NASA SMAP","Sentinel-2","Precision Irrigation"], confidence:"high", timestamp:new Date(now-88*D).toISOString() },
-  { id:"s19", headline:"Plenty Indoor Farms achieves $2.11/kg lettuce production cost after SoftBank-funded automation overhaul — approaches field parity", summary:"Fully robotic transplanting, harvesting and packaging at Compton facility; 99.9% water recapture and 365-day growing cycle underpin revised unit economics.", url:"#", category:"CEA", entities:["Plenty","SoftBank","Indoor Farming"], confidence:"medium", timestamp:new Date(now-44*D).toISOString() },
-  { id:"s20", headline:"Microsoft Azure FarmVibes AI crops digital twin platform achieves 2cm spatial resolution fusion across satellite, drone and IoT sensor layers", summary:"Open-source toolkit processes Sentinel, Landsat, and custom drone imagery into unified geospatial tensors; deployed across 5M acres in India and Brazil pilot.", url:"#", category:"Digital Twins", entities:["Microsoft Azure","FarmVibes","Digital Twin"], confidence:"high", timestamp:new Date(now-28*D).toISOString() },
+  { id:"s5",  headline:"Bowery Farming Chapter 7 assets acquired at $6.5M — third major vertical farm collapse in 18 months as unit energy costs remain unresolved", summary:"CEA sector energy economics breach 4 kWh/kg threshold for leafy greens in controlled environments; AppHarvest restructuring entity absorbs IP portfolio.", url:"#", category:"CEA", entities:["Bowery Farming","AppHarvest","Vertical Farming"], confidence:"high", timestamp:new Date(now-10.5*H).toISOString() }
 ];
 
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id:"all",               label:"All Feed" },
   { id:"Field Robotics",    label:"Field Robotics" },
@@ -331,9 +317,7 @@ function Loader({ status }) {
             animation:`scanring ${1.6+i*0.5}s linear infinite ${i%2?"reverse":""}`,
           }}/>
         ))}
-        <div style={{
-          position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
+        <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
           <div style={{
             width:8, height:8, borderRadius:"50%", background:"#34d399",
             boxShadow:"0 0 16px #34d399, 0 0 32px rgba(52,211,153,0.4)",
@@ -343,7 +327,7 @@ function Loader({ status }) {
       </div>
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:9, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.18em", color:"#34d399", marginBottom:5 }}>
-          DATABASE REFRESH INITIATED
+          TELEMETRY CACHE STREAM ACTIVE
         </div>
         <div style={{ fontSize:8, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.12em", color:"#334155" }}>
           {status}
@@ -370,32 +354,36 @@ export default function App() {
     tick(); const iv = setInterval(tick,1000); return () => clearInterval(iv);
   }, []);
 
-  // Modified to pull secure static tracking data created by GitHub pipeline scripts
+  // Optimized Fetch to sync with your automated JSON matrix database
   const sweep = useCallback(async () => {
     setLoading(true); setErr(null);
-    setStatus("SYNCING FIELD TELEMETRY DATA MATRIX...");
+    setStatus("INITIALIZING DATA MATRIX TARGET...");
     try {
-      // Fetch data file combined with a cache-busting timestamp signature string
-      const res = await fetch(`data/manifest.json?cache_bypass=${Date.now()}`);
-      if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+      setStatus("FETCHING RECENT TELEMETRY STORAGE...");
+      const res = await fetch("/data/manifest.json");
       
+      if (!res.ok) throw new Error(`HTTP Matrix Missing: ${res.status}`);
       const parsed = await res.json();
+      
+      setStatus("PARSING SYSTEM VECTOR NODES...");
       if (Array.isArray(parsed) && parsed.length > 0) {
-        setData(parsed.map((x,i) => ({
-          ...x, id: x.id || `ai-${i}`,
-          timestamp: x.timestamp || new Date().toISOString(),
+        setData(parsed.map((x, i) => ({
+          ...x, 
+          id: x.id || `ai-${i}`,
+          timestamp: x.timestamp || new Date(Date.now() - i * 5 * H).toISOString(),
         })));
         setAiLive(true);
       } else {
-        throw new Error("Target file structural formatting error.");
+        throw new Error("Empty storage structure.");
       }
     } catch(e) {
-      setErr("Static automated matrix unreachable — providing precompiled structural seed arrays.");
+      console.error(e);
+      setErr("Live matrix pipeline initializing — showing standard cache framework.");
       setData(SEED);
-    } finally { setLoading(false); setStatus(""); }
+    } { setLoading(false); setStatus(""); }
   }, []);
 
-  useEffect(() => { sweep(); }, []);
+  useEffect(() => { sweep(); }, [sweep]);
 
   const filtered = useMemo(() => {
     const sq = q.toLowerCase();
@@ -420,8 +408,6 @@ export default function App() {
 
   return (
     <div style={{ minHeight:"100vh", background:"#030712", color:"#f8fafc", overflowX:"hidden" }}>
-
-      {/* Ambient background decoration layers */}
       <div style={{ position:"fixed", inset:0, zIndex:0, overflow:"hidden", background:"linear-gradient(145deg,#0f172a,#020617,#022c22)" }}>
         <div style={{
           position:"absolute", top:"-15%", left:"-15%", width:"80vw", height:"80vw", borderRadius:"50%",
@@ -445,17 +431,14 @@ export default function App() {
         }}/>
       </div>
 
-      {/* Navigation Layout */}
       <div style={{
         position:"sticky", top:0, zIndex:50,
         backdropFilter:"blur(32px) saturate(220%)", WebkitBackdropFilter:"blur(32px) saturate(220%)",
-        background:"rgba(3,7,18,0.65)",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        background:"rgba(3,7,18,0.65)", borderBottom:"1px solid rgba(255,255,255,0.08)",
       }}>
         <div style={{
           padding:"5px 16px", display:"flex", justifyContent:"space-between", alignItems:"center",
-          borderBottom:"1px solid rgba(255,255,255,0.04)",
-          background:"rgba(0,0,0,0.25)",
+          borderBottom:"1px solid rgba(255,255,255,0.04)", background:"rgba(0,0,0,0.25)",
         }}>
           <div style={{ display:"flex", alignItems:"center", gap:7 }}>
             <div style={{
@@ -465,7 +448,7 @@ export default function App() {
               animation:"npulse 2s ease-in-out infinite",
             }}/>
             <span style={{ fontSize:8.5, fontFamily:"'JetBrains Mono',monospace", letterSpacing:"0.14em", color:"#334155", textTransform:"uppercase" }}>
-              {loading ? "FETCHING_MATRIX" : aiLive ? "PIPELINE_SYNC // ONLINE" : "LOCAL_CORE // ARCHIVE"}
+              {loading ? "DATA_STREAM_ACTIVE" : aiLive ? "AUTOMATED_CORE // LIVE" : "SYSTEM_READY // OFFLINE"}
             </span>
           </div>
           <span style={{ fontSize:9, fontFamily:"'JetBrains Mono',monospace", color:"#34d399", fontWeight:700 }}>
@@ -479,7 +462,7 @@ export default function App() {
               AG-AI <span style={{ color:"#34d399" }}>//</span> OS
             </div>
             <div style={{ fontSize:8.5, fontFamily:"'JetBrains Mono',monospace", color:"#334155", letterSpacing:"0.12em", marginTop:2 }}>
-              AGTECH INTELLIGENCE CORE // 2026
+              INTELLIGENCE MATRIX INFRASTRUCTURE // 2026
             </div>
           </div>
           <div style={{ display:"flex", gap:6 }}>
@@ -503,7 +486,7 @@ export default function App() {
               color:loading?"#1e293b":"#34d399", letterSpacing:"0.1em", fontWeight:700,
               transition:"all 0.2s",
             }}>
-              {loading ? "···" : "↺ REFRESH"}
+              {loading ? "···" : "↺ SYNC"}
             </button>
           </div>
         </div>
@@ -577,7 +560,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main Feed Container */}
       <main style={{ maxWidth:480, margin:"0 auto", padding:"16px 16px 88px", position:"relative", zIndex:1 }}>
         {loading ? (
           <Loader status={status}/>
