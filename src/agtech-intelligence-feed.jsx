@@ -360,7 +360,7 @@ export default function App() {
     setStatus("INITIALIZING DATA MATRIX TARGET...");
     try {
       setStatus("FETCHING RECENT TELEMETRY STORAGE...");
-      const res = await fetch("/data/manifest.json");
+      const res = await fetch("/agtech-intelligence-system/data/manifest.json");
       
       if (!res.ok) throw new Error(`HTTP Matrix Missing: ${res.status}`);
       const parsed = await res.json();
