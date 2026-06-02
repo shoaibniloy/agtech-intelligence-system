@@ -1,0 +1,49 @@
+name: AgTech Intelligence Core Pipeline
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  intelligence_sweep:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository Data
+        uses: actions/checkout@v4
+
+      - name: 2. Initialize Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 3. Install Core Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-generativeai requests
+
+      - name: 4. Execute Intelligence Core Engine
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python backend/fetch_intelligence.py
+
+      - name: 5. Commit and Push Matrix Updates
+        run: |
+          git config --global user.name "Ag-AI Telemetry Bot"
+          git config --global user.email "bot@ag-ai-system.local"
+          
+          git add public/data/
+          
+          if git diff --staged --quiet; then
+            echo "No new intelligence vectors discovered during this sweep loop."
+          else
+            git commit -m "chore: sync intelligence telemetry matrix [skip ci]"
+            git push
+          fi
