@@ -3,7 +3,6 @@ name: Deploy Frontend to GitHub Pages
 on:
   push:
     branches: [ "main" ]
-  # Allows the backend sweep workflow to trigger this deployment automatically
   workflow_run:
     workflows: ["AgTech Intelligence Core Pipeline"]
     types:
@@ -25,6 +24,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
     steps:
       - name: 1. Checkout Code
         uses: actions/checkout@v4.2.2
@@ -33,7 +36,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: 3. Install Project Dependencies
         run: npm install
